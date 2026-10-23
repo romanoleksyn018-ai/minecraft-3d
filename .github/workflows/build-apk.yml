@@ -10,11 +10,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    defaults:
-      run:
-        working-directory: android
 
     steps:
       - name: Checkout repository
@@ -23,15 +18,23 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --stacktrace
+      - name: Generate Wrapper, Permissions & Build
+        working-directory: ./android
+        run: |
+          # 1. Генеруємо gradlew (він з'явиться в папці android)
+          gradle wrapper
+          
+          # 2. Даємо права на запуск
+          chmod +x gradlew
+          
+          # 3. Збираємо APK через wrapper
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
